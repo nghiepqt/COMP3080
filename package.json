@@ -1,0 +1,21 @@
+{
+  "name": "iheritage-root",
+  "version": "1.0.0",
+  "description": "Root configurations and runners for iHeritage Fractional NFT Marketplace",
+  "private": true,
+  "scripts": {
+    "dev": "./run_dev_all.sh",
+    "anvil:public": "anvil --port 8547 --chain-id 31338",
+    "anvil:private": "anvil --port 8546 --chain-id 9999",
+    "contracts:deploy": "cd contracts && forge script script/DeployAll.s.sol --rpc-url http://127.0.0.1:8547 --broadcast --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --slow && forge script script/DeployAll.s.sol --rpc-url http://127.0.0.1:8546 --broadcast --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --slow",
+    "backend:dev": "cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload",
+    "frontend:dev": "cd frontend && npm run dev"
+  },
+  "keywords": [
+    "solidity",
+    "nextjs",
+    "fastapi",
+    "web3",
+    "monorepo"
+  ]
+}

@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F5F4F0; /* Soft Alabaster/Warm Bone */
+  --surface: #FFFFFF; /* Pure White */
+  --surface-elevated: #EFEFEA; /* Slightly darker warm paper */
+  --text-primary: #1A1A1A; /* Deep Charcoal */
+  --text-secondary: #626262; /* Driftwood Grey */
+  --accent-gold: #B38F39; /* Deep Muted Gold */
+  --accent-mint: #0B5345; /* Deep Forest Green */
+  --border: rgba(26, 26, 26, 0.06);
+  --ring: rgba(179, 143, 57, 0.25);
+  --grid-line: rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  --background: #0F1012; /* Deep Charcoal/Obsidian */
+  --surface: #1A1C1E; /* Earthy Slate */
+  --surface-elevated: #24272A; /* Slightly lighter slate */
+  --text-primary: #F4F4F0; /* Warm Ivory */
+  --text-secondary: #9A9FA5; /* Muted Silver */
+  --accent-gold: #D4AF37; /* Museum Gold */
+  --accent-mint: #00E676; /* Neon Mint */
+  --border: rgba(244, 244, 240, 0.08);
+  --ring: rgba(212, 175, 55, 0.25);
+  --grid-line: rgba(255, 255, 255, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-foreground: var(--text-primary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-mint: var(--accent-mint);
+  --color-border: var(--border);
+  --color-border-color: var(--border);
+  --color-ring: var(--ring);
+  --color-grid-line: var(--grid-line);
+  
+  --color-gallery-darkBg: var(--background);
+  --color-gallery-darkTextPrimary: var(--text-primary);
+  --color-gallery-darkSurface: var(--surface);
+  --color-gallery-borderData: var(--border);
+  
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Animations */
+@keyframes gold-glow {
+  0%, 100% {
+    box-shadow: 0 0 3px var(--accent-gold), inset 0 0 2px var(--accent-gold);
+    border-color: var(--accent-gold);
+  }
+  50% {
+    box-shadow: 0 0 10px var(--accent-gold), inset 0 0 4px var(--accent-gold);
+    border-color: var(--text-primary);
+  }
+}
+
+.gold-shimmer-border {
+  border: 1.5px solid var(--accent-gold);
+  animation: gold-glow 3s infinite ease-in-out;
+}
+
+/* Glint sweep effect on hover */
+.glint-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.glint-effect::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.glint-effect:hover::after {
+  left: 130%;
+  opacity: 1;
+}
+
+/* Dark mode override for gold/white glint */
+.dark .glint-effect::after {
+  background: linear-gradient(
+    to right,
+    rgba(212, 175, 55, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(212, 175, 55, 0) 100%
+  );
+}
+
+::selection {
+  background-color: var(--accent-gold);
+  color: var(--background);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Continuous Internal Shimmer for Legendary Fragments */
+@keyframes internalShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.legendary-shimmer {
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.4) 40%,
+    rgba(165, 243, 252, 0.4) 50%,
+    rgba(255, 255, 255, 0.4) 60%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  background-size: 200% 100%;
+  animation: internalShimmer 3s infinite linear;
+}
