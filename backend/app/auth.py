@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import secrets
 import time
+import os
 import base64
 import json
 import hmac
@@ -36,9 +37,6 @@ def create_jwt(payload: dict, secret: str) -> str:
 
 def grant_museum_role_if_needed(wallet_address: str):
     try:
-        import os
-        import json
-        from web3 import Web3
         
         target_address = Web3.to_checksum_address(wallet_address)
         museum_role = Web3.keccak(text="MUSEUM_ROLE")

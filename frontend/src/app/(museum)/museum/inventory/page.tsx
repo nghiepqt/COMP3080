@@ -7,8 +7,7 @@ import { useWallet } from '@/app/context/wallet-context';
 import { useAccount } from 'wagmi';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Spinner, FolderSimple, CloudArrowUp, ArrowRight, Trash } from '@phosphor-icons/react';
-
-const API_BASE = 'http://127.0.0.1:8000';
+import { API_BASE } from '@/config/env';
 
 export default function MuseumInventory() {
   const router = useRouter();

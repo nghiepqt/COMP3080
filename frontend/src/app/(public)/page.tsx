@@ -29,9 +29,9 @@ export default function Home() {
   useEffect(() => {
     if (account) {
       setRedirecting(true);
-      if (activeRole === 'admin') {
+      if (activeRole === 'museum') {
         router.push('/museum');
-      } else if (activeRole === 'collectorA' || activeRole === 'collectorB') {
+      } else if (activeRole === 'collector') {
         router.push('/collector');
       }
     }

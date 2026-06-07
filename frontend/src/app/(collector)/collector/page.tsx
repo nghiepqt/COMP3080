@@ -6,6 +6,8 @@ import { useWallet } from '@/app/context/wallet-context';
 import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
 import { motion } from 'framer-motion';
+import { API_BASE } from '@/config/env';
+import { truncateAddress } from '@/lib/utils';
 import { 
   PuzzlePiece, 
   CircleNotch,
@@ -18,8 +20,6 @@ import {
   Clock,
   TrendUp
 } from '@phosphor-icons/react';
-
-const API_BASE = 'http://127.0.0.1:8000';
 
 interface Artwork {
   id: string;
@@ -623,7 +623,7 @@ export default function CollectorDashboard() {
                           </td>
                           <td className="py-3 text-text-primary">Token #{bid.token_id}</td>
                           <td className="py-3 text-text-secondary">
-                            {bid.bidder ? `${bid.bidder.substring(0, 6)}...${bid.bidder.substring(bid.bidder.length - 4)}` : 'Unknown'}
+                            {bid.bidder ? truncateAddress(bid.bidder) : 'Unknown'}
                           </td>
                           <td className="py-3 text-accent-gold font-bold">
                             {parseFloat(ethers.formatEther(bid.amount)).toFixed(2)} ETH

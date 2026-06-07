@@ -19,8 +19,7 @@ import {
   X,
   ArrowUpRight,
 } from '@phosphor-icons/react';
-
-const API_BASE = 'http://127.0.0.1:8000';
+import { API_BASE } from '@/config/env';
 
 interface Artwork {
   id: string;
@@ -251,24 +250,17 @@ export default function ArtworkDetail({ artworkId }: { artworkId: string }) {
 
   // Reactive trigger to pull updates after Web3 actions (handles indexer latency)
   const triggerReactiveRefresh = useCallback(() => {
-    fetchGridData();
-    fetchRawHistory();
-    fetchArtworkBids();
-    setTimeout(() => {
+    const refresh = () => {
       fetchGridData();
       fetchRawHistory();
       fetchArtworkBids();
-    }, 1000);
-    setTimeout(() => {
-      fetchGridData();
-      fetchRawHistory();
-      fetchArtworkBids();
-    }, 2500);
-    setTimeout(() => {
-      fetchGridData();
-      fetchRawHistory();
-      fetchArtworkBids();
-    }, 5000);
+    };
+
+    refresh();
+    const delays = [1000, 2500, 5000];
+    delays.forEach((delay) => {
+      setTimeout(refresh, delay);
+    });
   }, [fetchGridData, fetchRawHistory, fetchArtworkBids]);
 
   useEffect(() => {

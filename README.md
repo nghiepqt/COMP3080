@@ -78,7 +78,8 @@ graph TD
 │   ├── src/config/      # Contract address configurations & network registries
 │   └── package.json     # Node scripts and dependencies (Wagmi, Viem, Ethers)
 │
-├── run_dev_all.sh       # Unified local environment startup bash script
+├── run_dev_all.sh       # Unified local environment startup bash script (Linux/macOS)
+├── run_dev_all.ps1      # Unified local environment startup PowerShell script (Windows)
 ├── package.json         # Root npm script runner shortcut
 └── README.md            # This documentation file
 ```
@@ -106,7 +107,7 @@ cd backend
 python3 -m venv .venv
 # Activate virtual environment
 source .venv/bin/activate  # On Linux/macOS
-# .venv\Scripts\activate   # On Windows (Git Bash)
+.venv\Scripts\activate   # On Windows (Git Bash)
 # Install dependencies
 pip install -r requirements.txt
 cd ..
@@ -125,15 +126,18 @@ cd ..
 
 To run the entire system locally (including starting two blockchain instances, deploying contracts, booting the backend database, and serving the frontend):
 
-```bash
+# On Linux / macOS:
 # Grant execution permissions (one-off)
 chmod +x run_dev_all.sh
 
 # Start the unified local environment
 ./run_dev_all.sh
-# OR use the npm shortcut
-npm run dev
-```
+
+# On Windows (PowerShell):
+# Start the unified local environment
+.\run_dev_all.ps1
+# (Note: If ExecutionPolicy blocks execution, run: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass)
+
 
 ### What happens behind the scenes?
 1. Stops any conflicting background instances of Anvil or FastAPI.
@@ -150,18 +154,17 @@ npm run dev
 
 ## 6. Local Testing Wallets & Network Config
 
-Anvil pre-funds several testing accounts with 10,000 ETH. These addresses are hardcoded as default test roles in the codebase:
+Anvil pre-funds several testing accounts with 10,000 ETH. Run this command to get the private keys of all accounts:
 
-### Test Wallets Credentials
+```bash
+cast wallet private-key --mnemonic "test test test test test test test test test test test junk" --mnemonic-index <account-index>
+```
+where `<account-index>` is the index of the account you want to get the private key of (0, 1, 2, ...).  
 
-| Role | Address | Private Key (Import to MetaMask) |
-| :--- | :--- | :--- |
-| **Museum Admin (Account #0)** | `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` | `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80` |
-| **Collector A / Alice (Account #1)** | `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` | `0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d` |
-| **Collector B / Bob (Account #2)** | `0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC` | `0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a` |
+Then, you install and setup MetaMask on your browser, add a new **wallet** by using private key.
 
 ### Add MetaMask Custom RPC Networks
-To interact with local blockchains using your browser wallet, add these two custom RPC networks in MetaMask:
+To interact with local blockchains using your browser wallet, add these two custom RPC networks in MetaMask (it may automatically ask you to add the network when connecting to the frontend):
 
 1. **Anvil Public Anchor**:
    * RPC URL: `http://127.0.0.1:8547`

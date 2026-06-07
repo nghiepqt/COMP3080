@@ -15,8 +15,7 @@ import {
   X, 
   FileImage 
 } from '@phosphor-icons/react';
-
-const API_BASE = 'http://127.0.0.1:8000';
+import { API_BASE } from '@/config/env';
 
 export default function OnboardArtifact() {
   const router = useRouter();
@@ -27,7 +26,7 @@ export default function OnboardArtifact() {
   // Form states
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
-  const [creationYear, setCreationYear] = useState<number>(new Date().getFullYear());
+  const [creationYear, setCreationYear] = useState<number | string>(new Date().getFullYear());
   const [file, setFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const gridSize = 10; // Defaults to 10x10
@@ -313,7 +312,15 @@ export default function OnboardArtifact() {
                       required
                       disabled={isUploading}
                       value={creationYear}
-                      onChange={(e) => setCreationYear(parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '') {
+                          setCreationYear('');
+                        } else {
+                          const parsed = parseInt(val);
+                          setCreationYear(isNaN(parsed) ? '' : parsed);
+                        }
+                      }}
                       placeholder="e.g. -196"
                       className="w-full bg-background border border-border rounded px-4 py-2.5 text-xs focus:border-accent-gold focus:outline-none focus:ring-1 focus:ring-accent-gold/25 transition-all text-text-primary"
                     />

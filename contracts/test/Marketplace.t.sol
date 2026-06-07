@@ -151,7 +151,7 @@ contract MarketplaceTest is Test {
         vm.stopPrank();
 
         // Check bid variables
-        (uint256 bidId, uint256 bidTokenId, address bidder, uint256 amount, bool active) = marketplace.bids(1);
+        (uint256 bidId, uint256 bidTokenId, address bidder, uint256 amount, bool active, ) = marketplace.bids(1);
         assertEq(bidId, 1);
         assertEq(bidTokenId, 1);
         assertEq(bidder, buyer1);
@@ -173,7 +173,7 @@ contract MarketplaceTest is Test {
         assertEq(address(this).balance - initPlatformBal, 0.075 ether); // 5% of 1.5 ether
 
         // Bid should be deactivated
-        (, , , , active) = marketplace.bids(1);
+        (, , , , active, ) = marketplace.bids(1);
         assertFalse(active);
         
         vm.stopPrank();
@@ -198,7 +198,7 @@ contract MarketplaceTest is Test {
         marketplace.cancelBid(1);
         assertEq(buyer1.balance, initBuyerBal);
         
-        (, , , , bool active) = marketplace.bids(1);
+        (, , , , bool active, ) = marketplace.bids(1);
         assertFalse(active);
         vm.stopPrank();
     }

@@ -1,10 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import os
-import time
-import base64
-import hmac
 from fastapi import FastAPI, Depends, File, UploadFile, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -44,20 +41,6 @@ def seed_roles():
         db.close()
 
 seed_roles()
-
-def base64url_encode(data: bytes) -> str:
-    return base64.urlsafe_b64encode(data).decode('utf-8').replace('=', '')
-
-def create_jwt(payload: dict, secret: str) -> str:
-    header = {"alg": "HS256", "typ": "JWT"}
-    header_b64 = base64url_encode(json.dumps(header).encode('utf-8'))
-    payload_b64 = base64url_encode(json.dumps(payload).encode('utf-8'))
-    
-    signature_input = f"{header_b64}.{payload_b64}".encode('utf-8')
-    signature = hmac.new(secret.encode('utf-8'), signature_input, hashlib.sha256).digest()
-    signature_b64 = base64url_encode(signature)
-    
-    return f"{header_b64}.{payload_b64}.{signature_b64}"
 
 from .analytics import router as analytics_router
 
@@ -159,29 +142,7 @@ async def create_artwork(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/artworks")
-def get_artworks(db: Session = Depends(get_db)):
-    artworks = db.query(Artwork).all()
-    return [
-        {
-            "id": a.id,
-            "title": a.title,
-            "artist": a.artist,
-            "creation_year": a.creation_year,
-            "master_token_id": a.master_token_id,
-            "public_chain_tx_hash": a.public_chain_tx_hash,
-            "master_ipfs_hash": a.master_ipfs_hash,
-            "museum_address": a.museum_address,
-            "image_url": get_image_url(a.master_ipfs_hash),
-            "status": a.status
-        } for a in artworks
-    ]
-
-@app.get("/api/artworks/{artwork_id}")
-def get_artwork(artwork_id: str, db: Session = Depends(get_db)):
-    a = db.query(Artwork).filter(Artwork.id == artwork_id).first()
-    if not a:
-        raise HTTPException(status_code=404, detail="Artwork not found")
+def serialize_artwork(a: Artwork) -> dict:
     return {
         "id": a.id,
         "title": a.title,
@@ -194,6 +155,18 @@ def get_artwork(artwork_id: str, db: Session = Depends(get_db)):
         "image_url": get_image_url(a.master_ipfs_hash),
         "status": a.status
     }
+
+@app.get("/api/artworks")
+def get_artworks(db: Session = Depends(get_db)):
+    artworks = db.query(Artwork).all()
+    return [serialize_artwork(a) for a in artworks]
+
+@app.get("/api/artworks/{artwork_id}")
+def get_artwork(artwork_id: str, db: Session = Depends(get_db)):
+    a = db.query(Artwork).filter(Artwork.id == artwork_id).first()
+    if not a:
+        raise HTTPException(status_code=404, detail="Artwork not found")
+    return serialize_artwork(a)
 
 class StatusUpdate(BaseModel):
     status: str
@@ -460,7 +433,6 @@ def get_artwork_price_history(artwork_id: str, raw: bool = False, db: Session = 
         ]
 
     # Group by calendar day (UTC)
-    from datetime import datetime, timezone
     daily_groups = {}
     for tx in transactions:
         tx_date = datetime.fromtimestamp(tx.timestamp, tz=timezone.utc).date()
@@ -488,7 +460,19 @@ def get_artwork_price_history(artwork_id: str, raw: bool = False, db: Session = 
 
     return result
 
-
+def serialize_bid(b: Bid, fragment: Fragment, artwork: Artwork = None, include_bidder: bool = False) -> dict:
+    data = {
+        "id": b.id,
+        "fragment_id": fragment.id,
+        "token_id": int(fragment.token_id),
+        "artwork_id": artwork.id if artwork else "",
+        "artwork_title": artwork.title if artwork else "Unknown",
+        "amount": b.amount,
+        "status": b.status
+    }
+    if include_bidder:
+        data["bidder"] = b.bidder_address
+    return data
 
 @app.get("/api/bids/bidder/{bidder_address}")
 def get_user_bids(bidder_address: str, db: Session = Depends(get_db)):
@@ -502,15 +486,7 @@ def get_user_bids(bidder_address: str, db: Session = Depends(get_db)):
         fragment = db.query(Fragment).filter(Fragment.id == b.fragment_id).first()
         if fragment:
             artwork = db.query(Artwork).filter(Artwork.id == fragment.artwork_id).first()
-            result.append({
-                "id": b.id,
-                "fragment_id": fragment.id,
-                "token_id": int(fragment.token_id),
-                "artwork_id": artwork.id if artwork else "",
-                "artwork_title": artwork.title if artwork else "Unknown",
-                "amount": b.amount,
-                "status": b.status
-            })
+            result.append(serialize_bid(b, fragment, artwork, include_bidder=False))
     return result
 
 @app.get("/api/bids/owner/{owner_address}")
@@ -526,17 +502,9 @@ def get_owner_bids(owner_address: str, db: Session = Depends(get_db)):
         fragment = b.fragment
         if fragment:
             artwork = db.query(Artwork).filter(Artwork.id == fragment.artwork_id).first()
-            result.append({
-                "id": b.id,
-                "fragment_id": fragment.id,
-                "token_id": int(fragment.token_id),
-                "artwork_id": artwork.id if artwork else "",
-                "artwork_title": artwork.title if artwork else "Unknown",
-                "amount": b.amount,
-                "bidder": b.bidder_address,
-                "status": b.status
-            })
+            result.append(serialize_bid(b, fragment, artwork, include_bidder=True))
     return result
+
 @app.get("/api/bids/artwork/{artwork_id}")
 def get_artwork_bids(artwork_id: str, db: Session = Depends(get_db)):
     bids = db.query(Bid).join(Fragment).filter(

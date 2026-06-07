@@ -238,7 +238,6 @@ class IndexerDaemon:
             if not artwork:
                 # If artwork record doesn't exist yet, we create a fallback artwork
                 # (normally the frontend creates it first via POST /api/artworks)
-                import uuid
                 artwork = Artwork(
                     id=str(uuid.uuid4()),
                     title="Untitled Heritage Artifact",

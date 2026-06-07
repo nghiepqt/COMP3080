@@ -5,6 +5,8 @@ import { useWallet } from '@/app/context/wallet-context';
 import { useAccount } from 'wagmi';
 import { useQuery } from '@tanstack/react-query';
 import { ethers } from 'ethers';
+import { API_BASE } from '@/config/env';
+import { truncateAddress } from '@/lib/utils';
 import {
   Coins,
   TrendUp,
@@ -12,8 +14,6 @@ import {
   Clock,
   Spinner
 } from '@phosphor-icons/react';
-
-const API_BASE = 'http://127.0.0.1:8000';
 
 export default function RoyaltyLedger() {
   const { address } = useAccount();
@@ -32,11 +32,6 @@ export default function RoyaltyLedger() {
     },
     enabled: !!account,
   });
-
-  const truncateAddress = (addr: string) => {
-    if (!addr) return '';
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
-  };
 
   const formatEth = (weiStr: string) => {
     try {

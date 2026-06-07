@@ -5,8 +5,10 @@ import { ethers } from 'ethers';
 import { useAccount, useDisconnect, useChainId, useConnect, useSignMessage, useSwitchChain } from 'wagmi';
 import { injected } from 'wagmi/connectors';
 import { CONTRACT_ADDRESSES, SupportedChainId } from '../../config/contracts';
+import { API_BASE, RPC_PUBLIC, RPC_PRIVATE } from '../../config/env';
+import { decodeJwt } from '../../lib/utils';
 
-export type UserRole = 'admin' | 'collectorA' | 'collectorB';
+export type UserRole = 'museum' | 'collector';
 
 export type AuthStatus = 
   | 'IDLE' 
@@ -18,29 +20,6 @@ export type AuthStatus =
   | 'AUTHENTICATED' 
   | 'FAILED';
 
-export interface RoleInfo {
-  name: string;
-  address: string;
-  privateKey: string;
-}
-
-export const ROLES: Record<UserRole, RoleInfo> = {
-  admin: {
-    name: 'Museum Administrator',
-    address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-    privateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
-  },
-  collectorA: {
-    name: 'Collector Alice (A)',
-    address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
-    privateKey: '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d',
-  },
-  collectorB: {
-    name: 'Collector Bob (B)',
-    address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
-    privateKey: '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a',
-  },
-};
 
 interface ContractMetadata {
   address: string;
@@ -76,9 +55,12 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-const API_BASE = 'http://127.0.0.1:8000'; // FastAPI backend URL
-const RPC_PUBLIC = 'http://127.0.0.1:8547';
-const RPC_PRIVATE = 'http://127.0.0.1:8546';
+function deriveRoleFromAddress(address: string, role?: string): UserRole {
+  if (role === 'museum') {
+    return 'museum';
+  }
+  return 'collector';
+}
 
 // Cookie helpers
 const setCookie = (name: string, value: string, days = 1) => {
@@ -104,19 +86,6 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
-function decodeJwt(token: string) {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payloadBase64 = parts[1];
-    const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = atob(base64);
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-}
-
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
   const { disconnect: wagmiDisconnect } = useDisconnect();
@@ -125,7 +94,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const { switchChainAsync } = useSwitchChain();
 
   const [account, setAccount] = useState<string | null>(null);
-  const [activeRole, setActiveRole] = useState<UserRole>('admin');
+  const [activeRole, setActiveRole] = useState<UserRole>('collector');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [backendContracts, setBackendContracts] = useState<ContractsResponse | null>(null);
@@ -188,14 +157,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setAuthStatus('AUTHENTICATED');
         
         // Restore activeRole based on address
-        const addrLower = payload.address.toLowerCase();
-        if (addrLower === ROLES.admin.address.toLowerCase()) {
-          setActiveRole('admin');
-        } else if (addrLower === ROLES.collectorB.address.toLowerCase()) {
-          setActiveRole('collectorB');
-        } else {
-          setActiveRole('collectorA');
-        }
+        setActiveRole(deriveRoleFromAddress(payload.address, payload.role));
       }
     }
     setIsInitialized(true);
@@ -212,17 +174,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setJwtToken(token);
           setAuthStatus('AUTHENTICATED');
           
-          const role = payload.role;
-          if (role === 'museum' || role === 'admin') {
-            setActiveRole('admin');
-          } else {
-            const addrLower = wagmiAddress.toLowerCase();
-            if (addrLower === ROLES.collectorB.address.toLowerCase()) {
-              setActiveRole('collectorB');
-            } else {
-              setActiveRole('collectorA');
-            }
-          }
+          setActiveRole(deriveRoleFromAddress(wagmiAddress, payload.role));
           return;
         }
       }
@@ -253,16 +205,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCookie('auth_token', token, 1);
     setJwtToken(token);
     setAccount(address);
-    if (role === 'museum' || role === 'admin') {
-      setActiveRole('admin');
-    } else {
-      const addrLower = address.toLowerCase();
-      if (addrLower === ROLES.collectorB.address.toLowerCase()) {
-        setActiveRole('collectorB');
-      } else {
-        setActiveRole('collectorA');
-      }
-    }
+    setActiveRole(deriveRoleFromAddress(address, role));
   };
 
   const connectWallet = async () => {
@@ -354,7 +297,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setAuthError(null);
   };
 
-  const getPublicSigner = async (): Promise<ethers.Signer | null> => {
+  const getPrivateSigner = async (): Promise<ethers.Signer | null> => {
     if (typeof window !== 'undefined' && (window as any).ethereum) {
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       return await provider.getSigner();
@@ -362,12 +305,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return null;
   };
 
-  const getPrivateSigner = async (): Promise<ethers.Signer | null> => {
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
-      const provider = new ethers.BrowserProvider((window as any).ethereum);
-      return await provider.getSigner();
-    }
-    return null;
+  const getPublicSigner = async (): Promise<ethers.Signer | null> => {
+    return getPrivateSigner();
   };
 
   return (

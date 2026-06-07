@@ -15,8 +15,7 @@ import {
   ArrowRight,
   Sparkle
 } from '@phosphor-icons/react';
-
-const API_BASE = 'http://127.0.0.1:8000';
+import { API_BASE } from '@/config/env';
 
 export default function MuseumDashboard() {
   const router = useRouter();

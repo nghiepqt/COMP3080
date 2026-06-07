@@ -5,15 +5,15 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useWallet } from '@/app/context/wallet-context';
 import DevNetworkToggle from '@/components/DevNetworkToggle';
-import { useTheme } from 'next-themes';
-import { Sun, Moon, CaretDown, Wallet, User, Bank, SignOut } from '@phosphor-icons/react';
+import { CaretDown, Wallet, User, Bank, SignOut } from '@phosphor-icons/react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { truncateAddress } from '@/lib/utils';
 
 export default function NavigationBar() {
   const { account, activeRole, authStatus, loginUser, disconnectWallet } = useWallet();
   const router = useRouter();
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   
@@ -49,13 +49,7 @@ export default function NavigationBar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const truncateAddress = (addr: string) => {
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
-  };
 
-  const currentTheme = theme === 'system' && mounted 
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') 
-    : theme;
 
   const handleConnectRole = async (role: 'collector' | 'museum') => {
     setIsConnectOpen(false);
@@ -73,9 +67,7 @@ export default function NavigationBar() {
   };
 
   const getRoleDisplayName = (role: string) => {
-    if (role === 'admin') return 'Museum Partner';
-    if (role === 'collectorA') return 'Collector Alice';
-    if (role === 'collectorB') return 'Collector Bob';
+    if (role === 'museum') return 'Museum Partner';
     return 'Collector';
   };
 
@@ -103,26 +95,7 @@ export default function NavigationBar() {
 
             {/* Theme Toggle */}
             <div className="relative w-9 h-9 flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                {mounted && (
-                  <motion.button
-                    key={currentTheme}
-                    onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')}
-                    initial={{ opacity: 0, rotate: -45, scale: 0.8 }}
-                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                    exit={{ opacity: 0, rotate: 45, scale: 0.8 }}
-                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="p-2.5 rounded-full hover:bg-surface-elevated text-text-secondary hover:text-text-primary transition-colors cursor-pointer border border-border/40"
-                    aria-label="Toggle theme"
-                  >
-                    {currentTheme === 'dark' ? (
-                      <Sun size={14} weight="duotone" className="text-accent-gold" />
-                    ) : (
-                      <Moon size={14} weight="duotone" className="text-accent-mint" />
-                    )}
-                  </motion.button>
-                )}
-              </AnimatePresence>
+              <ThemeToggle className="p-2.5 rounded-full border border-border/40" iconSize={14} />
             </div>
 
             {/* Dev-Mode Network Switcher */}
@@ -160,11 +133,11 @@ export default function NavigationBar() {
 
                       <div className="py-1">
                         <Link
-                          href={activeRole === 'admin' ? '/museum' : '/collector'}
+                          href={activeRole === 'museum' ? '/museum' : '/collector'}
                           onClick={() => setIsProfileOpen(false)}
                           className="flex items-center gap-2.5 w-full text-left px-3 py-2 text-xs text-text-primary hover:bg-surface-elevated/70 rounded transition-colors duration-150 cursor-pointer font-medium"
                         >
-                          {activeRole === 'admin' ? <Bank size={14} className="text-accent-gold" /> : <User size={14} className="text-accent-mint" />}
+                          {activeRole === 'museum' ? <Bank size={14} className="text-accent-gold" /> : <User size={14} className="text-accent-mint" />}
                           <span>Access Portal Console</span>
                         </Link>
                         

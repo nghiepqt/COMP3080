@@ -13,12 +13,10 @@ import {
   FolderSimple, 
   Coins, 
   CloudArrowUp,
-  Warning,
-  Sun,
-  Moon,
-  ArrowsLeftRight,
-  CircleNotch
+  Warning
 } from '@phosphor-icons/react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { truncateAddress } from '@/lib/utils';
 import AuthLoadingPortal from '@/components/AuthLoadingPortal';
 
 export default function MuseumLayout({
@@ -29,7 +27,6 @@ export default function MuseumLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { account, activeRole, isInitialized, authStatus } = useWallet();
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -43,9 +40,9 @@ export default function MuseumLayout({
     }
   }, [isInitialized, account, router]);
 
-  // Redirect non-admin to /collector
+  // Redirect non-museum to /collector
   useEffect(() => {
-    if (activeRole && activeRole !== 'admin') {
+    if (activeRole && activeRole !== 'museum') {
       router.push('/collector');
     }
   }, [activeRole, router]);
@@ -69,11 +66,7 @@ export default function MuseumLayout({
     return pathname.startsWith(href);
   };
 
-  const truncateAddress = (addr: string) => {
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
-  };
 
-  const currentTheme = theme === 'system' && mounted ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
 
   // Block dashboard layout structure and sidebar loading during auth verification
   if (!isInitialized || authStatus !== 'AUTHENTICATED' || !account) {
@@ -85,12 +78,12 @@ export default function MuseumLayout({
     );
   }
 
-  if (activeRole !== 'admin') {
+  if (activeRole !== 'museum') {
     return (
       <div className="p-4 rounded border border-red-500/20 bg-red-500/10 text-red-500 text-xs flex items-center gap-2 font-medium">
         <Warning size={16} />
         <span>
-          Museum Admin role is required to access this panel. Toggle role to <strong>Museum Admin</strong> in header controls.
+          Museum Partner role is required to access this panel.
         </span>
       </div>
     );
@@ -138,26 +131,7 @@ export default function MuseumLayout({
           
           {/* Theme Toggle */}
           <div className="relative w-8 h-8 flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              {mounted && (
-                <motion.button
-                  key={currentTheme}
-                  onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')}
-                  initial={{ opacity: 0, rotate: -30, scale: 0.8 }}
-                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                  exit={{ opacity: 0, rotate: 30, scale: 0.8 }}
-                  transition={{ duration: 0.2 }}
-                  className="p-2 rounded hover:bg-surface-elevated text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                  aria-label="Toggle theme"
-                >
-                  {currentTheme === 'dark' ? (
-                    <Sun size={15} weight="duotone" />
-                  ) : (
-                    <Moon size={15} weight="duotone" />
-                  )}
-                </motion.button>
-              )}
-            </AnimatePresence>
+            <ThemeToggle className="p-2 rounded" />
           </div>
 
           {/* Dev-Mode Network Switcher */}

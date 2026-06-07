@@ -1,19 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
-function decodeJwt(token: string) {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payloadBase64 = parts[1];
-    // Convert base64url to base64
-    const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = atob(base64);
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-}
+import { decodeJwt } from './lib/utils';
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;

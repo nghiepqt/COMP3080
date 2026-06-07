@@ -20,6 +20,7 @@ contract FragmentMarketplace is ERC721URIStorage, AccessControl {
         address bidder;
         uint256 amount;
         bool active;
+        uint256 lockedAmount;
     }
 
     mapping(uint256 => Listing) public listings;
@@ -151,25 +152,17 @@ contract FragmentMarketplace is ERC721URIStorage, AccessControl {
         // Determine if this is a Primary (from Museum Vault) or Secondary (from Collector) sale
         bool isPrimary = (seller == museum);
 
-        uint256 requiredValue;
-        uint256 platformCut;
+        uint256 platformCut = (price * platformFeeBasisPoints) / 10000;
+        uint256 requiredValue = price + platformCut;
+        require(msg.value >= requiredValue, "Insufficient payment with buyer fee");
+
         uint256 museumCut;
         uint256 sellerShare;
 
         if (isPrimary) {
-            // Flow 1: Buyer pays P + 5% P. Msg value must be >= 1.05 * P
-            platformCut = (price * platformFeeBasisPoints) / 10000;
-            requiredValue = price + platformCut;
-            require(msg.value >= requiredValue, "Insufficient payment with buyer fee");
-
             museumCut = 0;
             sellerShare = price; // Museum receives 100% P
         } else {
-            // Flow 3: Buyer pays P + 5% P. Msg value must be >= 1.05 * P
-            platformCut = (price * platformFeeBasisPoints) / 10000;
-            requiredValue = price + platformCut;
-            require(msg.value >= requiredValue, "Insufficient payment with buyer fee");
-
             museumCut = (price * museumRoyaltyBasisPoints) / 10000;
             sellerShare = price - museumCut; // Seller receives 93% P
         }
@@ -230,7 +223,8 @@ contract FragmentMarketplace is ERC721URIStorage, AccessControl {
             tokenId: tokenId,
             bidder: msg.sender,
             amount: baseAmount,
-            active: true
+            active: true,
+            lockedAmount: msg.value
         });
 
         emit BidPlaced(_bidIds, tokenId, msg.sender, baseAmount);
@@ -243,27 +237,8 @@ contract FragmentMarketplace is ERC721URIStorage, AccessControl {
 
         bids[bidId].active = false;
 
-        // Determine if this was primary or secondary
-        uint256 tokenId = bid.tokenId;
-        address currentOwner;
-        if (listings[tokenId].active) {
-            currentOwner = listings[tokenId].seller;
-        } else {
-            currentOwner = ownerOf(tokenId);
-        }
-        uint256 artworkId = tokenToArtwork[tokenId];
-        address museum = artworkToMuseum[artworkId];
-        bool isPrimary = (currentOwner == museum);
-
-        uint256 refundAmount;
-        if (isPrimary) {
-            refundAmount = bid.amount;
-        } else {
-            refundAmount = bid.amount + (bid.amount * platformFeeBasisPoints) / 10000;
-        }
-
-        // Refund bidder
-        payable(msg.sender).transfer(refundAmount);
+        // Refund bidder directly from saved lockedAmount
+        payable(msg.sender).transfer(bid.lockedAmount);
 
         emit BidCancelled(bidId, bid.tokenId, msg.sender);
     }

@@ -13,6 +13,8 @@ import {
   FolderOpen
 } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
+import { API_BASE } from '@/config/env';
+import { truncateAddress } from '@/lib/utils';
 
 interface Artwork {
   id: string;
@@ -38,13 +40,11 @@ interface ListingItem {
   artwork_title: string;
 }
 
-const API_BASE = 'http://127.0.0.1:8000';
-
 function formatAddress(addr: string) {
   if (addr.toLowerCase() === '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266') {
     return 'National Heritage Museum';
   }
-  return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+  return truncateAddress(addr);
 }
 
 /** Dynamically resolve the artwork detail base path from the current route context */
