@@ -126,6 +126,8 @@ cd ..
 
 To run the entire system locally (including starting two blockchain instances, deploying contracts, booting the backend database, and serving the frontend):
 
+```bash
+
 # On Linux / macOS:
 # Grant execution permissions (one-off)
 chmod +x run_dev_all.sh
@@ -137,7 +139,7 @@ chmod +x run_dev_all.sh
 # Start the unified local environment
 .\run_dev_all.ps1
 # (Note: If ExecutionPolicy blocks execution, run: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass)
-
+```
 
 ### What happens behind the scenes?
 1. Stops any conflicting background instances of Anvil or FastAPI.
