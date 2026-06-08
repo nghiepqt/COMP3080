@@ -150,6 +150,8 @@ chmod +x run_dev_all.sh
 6. Launches the **FastAPI Backend Server** (Port `8000`), which automatically imports the fresh addresses.
 7. Launches the **Next.js Frontend Server** (Port `3000`).
 
+**PAY ATTENTION: You must disconnect the wallet and Delete activity and nonce data in Developer tools of MetaMask for each time running the script.
+
 *Press **`Ctrl + C`** in the terminal to cleanly terminate all background servers simultaneously.*
 
 ---

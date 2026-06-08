@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import json
 import time
 import hashlib
@@ -58,10 +59,12 @@ RPC_PRIVATE = "http://127.0.0.1:8546"
 MUSEUM_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 MUSEUM_PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
-# Paths to Foundry output artifacts
-ABI_MASTER_PATH = "/home/qtnghiep/COMP3080/contracts/out/MasterNFT.sol/MasterNFT.json"
-ABI_FRAGMENT_PATH = "/home/qtnghiep/COMP3080/contracts/out/FragmentMarketplace.sol/FragmentMarketplace.json"
-DEPLOYED_ADDRESSES_PATH = "/home/qtnghiep/COMP3080/contracts/deployed_addresses.json"
+# Paths to Foundry output artifacts (resolved relative to this file's location)
+_BACKEND_APP_DIR = Path(__file__).resolve().parent
+_PROJECT_ROOT = _BACKEND_APP_DIR.parent.parent
+ABI_MASTER_PATH = str(_PROJECT_ROOT / "contracts" / "out" / "MasterNFT.sol" / "MasterNFT.json")
+ABI_FRAGMENT_PATH = str(_PROJECT_ROOT / "contracts" / "out" / "FragmentMarketplace.sol" / "FragmentMarketplace.json")
+DEPLOYED_ADDRESSES_PATH = str(_PROJECT_ROOT / "contracts" / "deployed_addresses.json")
 
 def load_contract_abi(path: str) -> List[Any]:
     try:

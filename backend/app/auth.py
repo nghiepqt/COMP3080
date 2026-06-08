@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 import secrets
 import time
 import os
+from pathlib import Path
 import base64
 import json
 import hmac
@@ -43,7 +44,8 @@ def grant_museum_role_if_needed(wallet_address: str):
         admin_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
         admin_pk = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
         
-        deployed_path = "/home/qtnghiep/COMP3080/contracts/deployed_addresses.json"
+        _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+        deployed_path = str(_PROJECT_ROOT / "contracts" / "deployed_addresses.json")
         if not os.path.exists(deployed_path):
             print("[AUTH] contract deployed_addresses.json not found, skipping role grant.")
             return
@@ -56,7 +58,7 @@ def grant_museum_role_if_needed(wallet_address: str):
         w3_pub = Web3(Web3.HTTPProvider(rpc_public))
         if w3_pub.is_connected() and "MasterNFT" in addresses:
             master_address = addresses["MasterNFT"]
-            abi_path = "/home/qtnghiep/COMP3080/contracts/out/MasterNFT.sol/MasterNFT.json"
+            abi_path = str(_PROJECT_ROOT / "contracts" / "out" / "MasterNFT.sol" / "MasterNFT.json")
             if os.path.exists(abi_path):
                 with open(abi_path, "r") as f:
                     artifact = json.load(f)
@@ -80,7 +82,7 @@ def grant_museum_role_if_needed(wallet_address: str):
         w3_priv = Web3(Web3.HTTPProvider(rpc_private))
         if w3_priv.is_connected() and "FragmentMarketplace" in addresses:
             marketplace_address = addresses["FragmentMarketplace"]
-            abi_path = "/home/qtnghiep/COMP3080/contracts/out/FragmentMarketplace.sol/FragmentMarketplace.json"
+            abi_path = str(_PROJECT_ROOT / "contracts" / "out" / "FragmentMarketplace.sol" / "FragmentMarketplace.json")
             if os.path.exists(abi_path):
                 with open(abi_path, "r") as f:
                     artifact = json.load(f)

@@ -28,7 +28,7 @@ function Clean-Processes {
 
 Write-Host "=== [1/5] Stopping existing background processes ==="
 Clean-Processes
-Start-Sleep -Seconds 1.5
+Start-Sleep -Milliseconds 1500
 
 Write-Host "=== [2/5] Cleaning local SQLite database and mock IPFS assets ==="
 if (Test-Path "backend/iheritage.db") {
@@ -87,7 +87,7 @@ try {
     Write-Host "=== [5/5] Starting Backend and Frontend Servers ==="
     Write-Host "Starting Python FastAPI Backend..."
     Set-Location backend
-    Start-Process -FilePath "..\.venv\Scripts\python.exe" -ArgumentList "-m uvicorn app.main:app --host 127.0.0.1 --port $PORT_BACKEND" -NoNewWindow -RedirectStandardOutput "backend.log" -RedirectStandardError "backend.err.log"
+    Start-Process -FilePath "$PSScriptRoot\backend\.venv\Scripts\python.exe" -ArgumentList "-m uvicorn app.main:app --host 127.0.0.1 --port $PORT_BACKEND" -NoNewWindow -RedirectStandardOutput "backend.log" -RedirectStandardError "backend.err.log"
     Set-Location ..
 
     # Wait for backend to start responding
